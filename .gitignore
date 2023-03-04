@@ -127,3 +127,29 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# Folders
+node_modules
+build
+coverage
+dist
+.pnp
+.idea
+.pnp.js
+.vscode
+
+# Files
+.DS_Store
+.jest-*
+*.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.tgz
+TODO
+
+yarn.lock
+
