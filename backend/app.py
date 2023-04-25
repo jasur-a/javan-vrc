@@ -6,6 +6,9 @@ import logging
 from flask_mongoengine import MongoEngine
 from templates.template_pdf import generate_pdf
 from templates.template_txt import generate_txt
+from AI.sound_to_text import SoundToText
+import AI.extract_Ingredients as extr_ing
+#import AI.extract_Procedure as extr_proc
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -84,8 +87,12 @@ class Recipes(db.Document):
 #listamos todas las recetas
 @app.route("/api/list", methods=['GET'])
 def get_recipes():
-  recipes = Recipes.objects()
-  return jsonify(recipes), 200
+    try:
+        recipes = Recipes.objects()
+        return jsonify(recipes), 200
+    except Exception:
+        return jsonify({"error": 'ha ocurrido un error'}), 500
+    
 
 
 #buscamos si la url de la receta ya ha sido procesada
@@ -121,13 +128,29 @@ def download_file(type_file, data):
         return False
 
 
-def proccess_video(video, type):
+def process_video(video, type= "file"):
+    # Se obtiene el texto del video con sonido
+    #try:
+    #    print("::Convirtiendo sonido a texto...")
+    #    sound_to_text = SoundToText(video)
+    #    sound_to_text.current_folder
+    #    sound_to_text.convert_video_to_audio()
+    #except Exception:
+    #    return jsonify({"error": 'No se ha podido obtener el texto del video'}), 500
 
-    #img to text  y sound to text
-
+    
+    print("::El video ha sido procesado exitosamente...")
+    
+    # Se obtienen los ingredientes
+    ingredients = extr_ing.extract_ingredients()
+    print(ingredients)
+    
+    print("::Se esta extrayendo el procedimiento...")
+    #extr_proc
+    
     #se unen ambos textos, poniendo de primero img
 
-    text = img_text + sound_text #TODO
+    #text = img_text + sound_text #TODO
 
     #TODO post procesamiento y extracci'on
     print("::procesamos el video")
@@ -154,7 +177,7 @@ def add_recipe():
             destination="/".join([target, filename])
             file.save(destination)
             session['uploadFilePath']=destination
-            recipe = proccess_video(file)
+            recipe = process_video(file)
 
         if url != "":
             exist = get_recipe_url(url)
@@ -168,7 +191,7 @@ def add_recipe():
                 return
             else:
                 print("::ejecutamos toda la IA")
-                data = proccess_video(url)
+                data = process_video(url, "url")
 
 
         data  = {  "name" : "Receta de Chiles Poblanos",
@@ -206,13 +229,13 @@ def add_recipe():
             "tips": []
         }
 
-        if data :
+        #if data :
             #generamos file
-            file = download_file(type_file, data)
+            #file = download_file(type_file, data)
 
             #almacenar en la bd ...... TODO
 
-            return file, 200#jsonify(movie), 201
+       #     return file, 200#jsonify(movie), 201
 
         return jsonify({"error": 'No es una receta'}), 500
 
