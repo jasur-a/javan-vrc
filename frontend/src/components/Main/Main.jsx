@@ -24,7 +24,7 @@ export function Main (props) {
         <h3>Por favor indique el origen de su video</h3>
         <Form onSubmit={handleSubmit} onChange={handleChangeForm }>
           <div>
-            <Label htmlFor="url">Por url (indique la url de youtube)</Label>
+            <Label htmlFor="url">Agregue la URL del video</Label>
             <Input type="text"  name="url" disabled={disabled.url} required/>
 
           </div>
@@ -40,7 +40,7 @@ export function Main (props) {
           </div>
 
           <div>
-            <Label htmlFor="is_mexican"> <Input type="checkbox" className="checkbox" name="is_mexican" id="is_mexican" />La receta ingresada es de comida Mexicana  </Label>
+            <Label htmlFor="is_mexican"> <Input type="checkbox" className="checkbox" name="is_mexican" id="is_mexican" />Confirmar que la receta ingresada es de comida Mexicana  </Label>
           </div>
 
           <div>
