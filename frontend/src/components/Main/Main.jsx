@@ -3,7 +3,7 @@ import { modalLegals } from '../constants/constants';
 import ModalWrapper from '../core/modalWrapper/ModalWrapper';
 import { UploadVideo } from '../core/uploadVideo';
 import { MainController } from './MainController';
-import {  Container, Form, Input, Label } from './Main.style';
+import {  Container, Form, Input, Label, Button } from './Main.style';
 
 export function Main (props) {
 
@@ -16,24 +16,27 @@ export function Main (props) {
   } = MainController(props)
 
   return (
-
+    <>
+    
+      <ModalWrapper modal={modalLegals} show={showModal}  handleShowModal={setShoModal} />
+    
       <Container>
-        <ModalWrapper modal={modalLegals} show={showModal}  handleShowModal={setShoModal} />
         <h3>Por favor indique el origen de su video</h3>
         <Form onSubmit={handleSubmit} onChange={handleChangeForm }>
           <div>
             <Label htmlFor="url">Por url (indique la url de youtube)</Label>
-            <Input type="text"  name="url" disabled={disabled.url}/>
+            <Input type="text"  name="url" disabled={disabled.url} required/>
 
           </div>
           <div>
             <Label htmlFor="fileUpload">Subir desde el ordenador </Label>
-            <UploadVideo name="fileUpload" disabled={disabled.fileUpload} form={formData} formState={setFormData}/>
+            
+            <UploadVideo name="fileUpload" disabled={disabled.fileUpload} form={formData} formState={setFormData} required/>
 
           </div>
 
           <div>
-            <Label htmlFor="legals"> <Input type="checkbox" className="checkbox" name="legals"  id="legals" disabled={disabled.fileUpload} /> Acepto las <button type="button" onClick={() => setShoModal(true)}>políticas de uso </button> </Label>
+            <Label htmlFor="legals"> <Input type="checkbox" className="checkbox" name="legals"  id="legals" disabled={disabled.fileUpload} required /> Acepto las <button type="button" className="link" onClick={() => setShoModal(true)}>políticas de uso </button> </Label>
           </div>
 
           <div>
@@ -41,10 +44,15 @@ export function Main (props) {
           </div>
 
           <div>
-            <button>Extraer Receta</button>
+             Descargar en formato:
+             <Label htmlFor="formatPDF"><Input type="radio" name="format" id="formatPDF" value="pdf" required />PDF</Label>
+             <Label htmlFor="formatTXT"><Input type="radio" name="format" id="formatTXT" value="txt" required />TXT </Label>
           </div>
+            <Button type="submit" >Extraer Receta</Button>
         </Form>
       </Container>
+    </>
+
   );
 }
 

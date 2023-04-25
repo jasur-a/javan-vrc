@@ -13,11 +13,10 @@ export const ModalContainer = styled.div`
   right: 0px;
   top: 0px;
   bottom: 0px;
-  padding: 0px 20px;
 `;
 
 export const Modals = styled.div`
-  width: 100%;
+  width: 90%;
   display: flex;
   height: auto;
   margin: 0px;

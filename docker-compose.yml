@@ -1,0 +1,27 @@
+version: '3'
+services:
+  mongo:
+    image: "mongo:latest"
+    volumes:
+      - "mongo-data:/data/db"
+  backend:
+    build: "backend"
+    image: "backend:latest"
+    ports:
+      - 8080:8080
+    links:
+      - mongo:mongo
+    environment:
+      - MONGO_DATABASE=recipes
+      - MONGO_HOST=mongo
+    depends_on:
+      - mongo
+  frontend:
+    build: "frontend"
+    image: "frontend:latest"
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+volumes:
+  mongo-data:

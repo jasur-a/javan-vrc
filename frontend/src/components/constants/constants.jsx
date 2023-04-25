@@ -3,6 +3,6 @@ export const modalLegals = {
         "children": "Autorizo que el video que estoy proporcionando seá utilizado para servicios sociales y no para obtener remuneraciones económicas"
     },
     "header": {
-        "title": "Políticas de Cookies"
+        "title": "Políticas de Uso"
     }
 }

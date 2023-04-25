@@ -1,3 +1,7 @@
+*{
+  box-sizing: border-box;
+}
+
 .App {
   text-align: center;
   width: 100%;
@@ -6,11 +10,11 @@
   z-index: 3;
   height: 100%;
   justify-content: center;
-  background-color: rgba(0,0,0, 0.3);
+  background-color: #02566c;
   align-items: center;
   padding: 0px;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -44,12 +48,17 @@ h1.App-title {
   font-family:'Raleway', sans-serif;
   font-size: 20px;
   font-weight: 800; 
-  line-height: 72px;
-  margin: 0 ;
+  line-height: 32px;
+  margin: 20px 0 ;
   text-align: center;
   text-transform: uppercase; 
+
 }
 
+.header{
+  padding: 0 9%;
+  color: #fff;
+}
 
 @keyframes App-logo-spin {
   from {

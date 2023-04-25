@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /**
  * @name UploadFileController
@@ -8,84 +8,33 @@ import { useEffect, useState } from 'react';
  */
 
 export const UploadVideoController = (props) => {
-  console.log("::props", props)
   const {
     name = '',
-    supported_filetype = ['mp4', 'mov'],
-    compress_quality = 0.9,
-    form,
+    supported_filetype = ['mp4'],
     formState
   } = props;
 
-  const valueForm = form[name];
 
-  const vid_ext = ['mp4', 'mov'];
-
-  const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
-  const [fileType, setFiletype] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const quality = compress_quality;
-  const compress_from = 2097152;
-
-  useEffect(() => {
-    const val_back =
-      typeof valueForm === 'object' && valueForm[name]
-        ? valueForm[name]
-        : valueForm;
-
-    if (val_back && typeof val_back === 'string') {
-      var value_split = val_back.split('/')[2];
-      setFileName(value_split);
-      setFiletype(value_split.split('.')[1]);
-    }
-  }, [valueForm, name]);
-
-  // handle drag events
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!loading) {
-      if (e.type === 'dragenter' || e.type === 'dragover') {
-        setDragActive(true);
-      } else if (e.type === 'dragleave') {
-        setDragActive(false);
-      }
-    }
-  };
-
-  // triggers when file is dropped
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!loading) {
-      setDragActive(false);
-      let { files = [] } = e.dataTransfer;
-      if (files && files[0]) {
-        handleFiles(files[0]);
-      }
-    }
-  };
 
   // triggers when file is selected with click
   const handleChange = (e) => {
     e.preventDefault();
-    let { files = [] } = e?.target;
+    let { files = [] , value = ""} = e?.target;
     if (files && files[0]) {
-      handleFiles(files[0]);
+      handleFiles(files[0], value);
     }
   };
 
-  const handleFiles = async (file) => {
+  const handleFiles = async (file, value) => {
     setLoading(true);
 
-    const { size, type } = file;
+    const { type } = file;
     const ext = type.split('/')[1];
     var error_msg = '';
-    var new_file = file;
 
     setError(error_msg);
 
@@ -103,11 +52,9 @@ export const UploadVideoController = (props) => {
       setError('');
 
       try {
-        let file_base64 = await getBase64(new_file);
-
-        if (file_base64) {
-          formState({...FormData, [name]: file_base64})
-        }
+        
+          setFileName(file?.name);
+          formState({...FormData, [name]: value})
       } catch (err) {
         setError('Hubo un error con el video, por favor súbalo de nuevo');
         console.error(err);
@@ -116,25 +63,11 @@ export const UploadVideoController = (props) => {
     }
   };
 
-  const getBase64 = (file) => {
-    return new Promise((resolve) => {
-      let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        resolve(reader.result);
-      };
-    });
-  };
-
   return {
-    handleDrag,
-    handleDrop,
     handleChange,
     name,
     fileName,
-    fileType,
     error,
-    dragActive,
     loading
   };
 };

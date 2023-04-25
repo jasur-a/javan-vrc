@@ -26,14 +26,10 @@ export const UploadVideo = (props) => {
   } = props;
 
   const {
-    handleDrag,
-    handleDrop,
     handleChange,
     name,
     fileName,
-    fileType,
     error,
-    dragActive,
     loading
   } = UploadVideoController(props);
 
@@ -41,13 +37,9 @@ export const UploadVideo = (props) => {
     <UploadFileContainer
       key={name}
       data={name}
-      onDragEnter={handleDrag}
-      onDragLeave={handleDrag}
-      onDragOver={handleDrag}
-      onDrop={handleDrop}
       className={loading ? 'disabled' : ''}
     >
-      <div id='file-upload' className={dragActive ? 'drag-active' : ''}>
+      <div id='file-upload' >
         <input
           type='file'
           id={name}
@@ -56,7 +48,7 @@ export const UploadVideo = (props) => {
           disabled={disabled || loading}
         />
         <Label htmlFor={name}>
-          <div data-ext={fileType}>
+          <div>
             <p>{label && label}</p>
             {fileName !== '' && <p>{fileName}</p>}
             {placeholder && fileName === '' && <p>{placeholder}</p>}

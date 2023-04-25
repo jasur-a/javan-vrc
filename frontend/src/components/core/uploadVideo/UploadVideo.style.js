@@ -8,38 +8,18 @@ export const UploadFileContainer = styled.div`
     background: #fff;
     cursor: pointer;
     border: 1px solid #333;
-  height: 50px;
-  display: block;
-  border-radius: 10px;
-
-    &.drag-active {
-      background-color: #ffffff;
-      border: 1px dashed $f5f5f5;
-    }
-  }
+    height: 50px;
+    display: block;
+    border-radius: 10px;
 
   input {
     display: none;
   }
 
-  .drag-file-element {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 1rem;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-  }
-
   &.disabled {
+    * { cursor: no-drop; }
     label {
       cursor: no-drop;
-    }
-    #file-upload.drag-active {
-      background: #fff;
-      border: 1px solid #f5f5f5
     }
   }
 
@@ -111,6 +91,6 @@ export const Spinner = styled.div`
   height: 20px !important;
   margin-right: 5px;
   border-radius: 50%;
-  border-left-color: ${(props) => props.theme.palette.primary.default};
+  border-left-color: #333;
   animation: ${spin} 1s ease infinite;
 `;

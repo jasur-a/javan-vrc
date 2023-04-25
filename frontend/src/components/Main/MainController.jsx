@@ -1,26 +1,44 @@
-import React, {  useState } from 'react';
-import { handleUploadImage } from '../../api/api';
+import  { useEffect, useState } from 'react';
+import { generate_recipe , get_recipes } from '../../api/api';
 
 export function MainController (props) {
 
+  console.log("::props", props)
   const [ showModal, setShoModal] = useState(false);
   const [ formData, setFormData] = useState({});
   const [ disabled, setDisabled] = useState({"url": false, "fileUpload": false});
 
+  useEffect( () => {
+
+    console.log("::list", get_recipes())
+
+
+  }, [])
+
   const handleSubmit = async (ev)  => {
     ev.preventDefault();
 
-    const response = await handleUploadImage(formData)
+    const response = await generate_recipe(formData)
 
     if(response){
       console.log("::response", response)
+
+      return response
     }
   }
 
 
+
+
+
   const handleChangeForm = (e) => {
-    const { target : { value, name, files } = {}} = e;
+    const { target : { value, name, files , checked } = {}} = e;
     let val;
+
+    console.log("::e", e)
+
+    console.log("::val", val)
+    console.log("::val", checked)
 
     switch(name){
       case "url":
@@ -33,7 +51,7 @@ export function MainController (props) {
         break;
       case "fileUpload":
         if( value !== ""){
-          val = files[0]
+          val = value
           setDisabled({...disabled, "url": true})
         }else{
           setDisabled({...disabled, "url": false})
@@ -42,6 +60,9 @@ export function MainController (props) {
       default:
         val = value;
         break;
+    }
+    if(checked){
+      val = checked
     }
 
     if(val){
