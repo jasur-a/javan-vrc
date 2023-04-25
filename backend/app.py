@@ -95,9 +95,8 @@ def get_recipe_url(url : str):
         print("::recipe", recipe)
 
         return jsonify(recipe), 200
-    
     except Exception:
-            return False
+        return False
 
 
 #consultamos por id para descargar la receta
@@ -106,65 +105,70 @@ def get_recipe_id(id : id):
     return jsonify(recipe), 200
 
 
+@app.route('/download-file')
+def download_file(type_file, data):
+    print("::generamos el descargable")
+    try:
+        if type_file == 'pdf':
+            file = generate_pdf(data)
 
-def proccess_video():
+            return file, 200
+        else:
+            file = generate_txt(data)
+
+            return file, 200
+    except Exception:
+        return False
+
+
+def proccess_video(video, type):
+
+    #img to text  y sound to text
+
+    #se unen ambos textos, poniendo de primero img
+
+    text = img_text + sound_text #TODO
+
+    #TODO post procesamiento y extracci'on
     print("::procesamos el video")
 
-
-# @app.route('/download-file')
-# def download_file():
-#     {id , format}
-#     data  = {get_recipe_id(id)}
-#     print("::procesamos el video")
-#     if format === 'pdf':
-#         file = generate_pdf(data)
-
-#         return file, 200
-#     else:
-#         file = generate_txt(data)
-
-#         return file, 200
 
 #crear la receta
 @app.route('/api/upload', methods=['POST'])
 def add_recipe():
     try:
         #datos from user
-
-
+        file = None
+        data = None
         body = request.get_json()
         url = body.get("url") or  ""
         is_mexican = body.get("is_mexican") or  False
         legals = body.get("legals") or  False
+        type_file = body.get("type_file") or 'pdf'
 
+        if 'fileUpload' in request.files:
+            target=os.path.join(UPLOAD_FOLDER,'test_docs')
+            file = request.files['fileUpload']
+            print("::f", file)
+            filename = secure_filename(file.filename)
+            destination="/".join([target, filename])
+            file.save(destination)
+            session['uploadFilePath']=destination
+            recipe = proccess_video(file)
 
-        # if 'fileUpload' in request.files:
-        #     target=os.path.join(UPLOAD_FOLDER,'test_docs')
-        #     file = request.files['fileUpload']
-        #     print("::f", file)
-        #     filename = secure_filename(file.filename)
-        #     destination="/".join([target, filename])
-        #     file.save(destination)
-        #     session['uploadFilePath']=destination
+        if url != "":
+            exist = get_recipe_url(url)
+            print("::exist", exist)
 
-        #     print("::filename", filename)
-
-        # print("::url", url)
-        # print("::body", body)
-
-        # if url != "":
-        #     exist = get_recipe_url(url)
-        #     print("::exist", exist)
-
-
-        #     if exist :
-        #         print("::devolvemos el archivo de una vez")
-        #         return
-        #     else:
-        #         print("::ejecutamos toda la IA")
-        #         proccess_video()
-
-        #movie = Recipes(**body).save()
+            if exist :
+                print("::devolvemos el archivo de una vez")
+                data  = {""} #TODO
+                #generamos file
+                file = download_file(type_file, data)
+                return
+            else:
+                print("::ejecutamos toda la IA")
+                data = proccess_video(url)
 
 
         data  = {  "name" : "Receta de Chiles Poblanos",
@@ -201,14 +205,19 @@ def add_recipe():
             ],
             "tips": []
         }
-        #generamos pdf
-        file = generate_pdf(data)
-        #file = generate_txt(data)
 
-        return file, 200#jsonify(movie), 201
+        if data :
+            #generamos file
+            file = download_file(type_file, data)
+
+            #almacenar en la bd ...... TODO
+
+            return file, 200#jsonify(movie), 201
+
+        return jsonify({"error": 'No es una receta'}), 500
 
     except Exception:
-        return jsonify({"error": 'ha ocurrido un error'})
+        return jsonify({"error": 'ha ocurrido un error'}), 500
 
 # @app.route('/upload', methods=['POST'])
 # def fileUpload():
