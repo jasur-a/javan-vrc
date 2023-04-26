@@ -79,12 +79,15 @@ export async function download_recipe(data) {
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(data),
-    }).then(response => response.blob())
-    .then(blob => {
+    }).then(response => response.json())
+    .then(data => {
+      if( data?.error){
+        return data?.error
+      }
+      const fileName = data.name;
       // Guardar el archivo en el sistema de archivos local
-      saveAs(blob, 'receta_chiles_poblanos.pdf');
-      console.log("::bb", blob)
-      //saveAs(blob, 'receta_chiles_poblanos.txt');
+      const blob = generate_file(data);
+      saveAs(blob, fileName);
     })
     .catch(error => {
       console.error('Error al descargar el archivo:', error);
