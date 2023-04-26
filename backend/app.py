@@ -142,13 +142,11 @@ def download_file():
 
 def process_video(video, type= "file"):
     # Se obtiene el texto del video con sonido
-    #try:
-    #    print("::Convirtiendo sonido a texto...")
-    #    sound_to_text = SoundToText(video)
-    #    sound_to_text.current_folder
-    #    sound_to_text.convert_video_to_audio()
-    #except Exception:
-    #    return jsonify({"error": 'No se ha podido obtener el texto del video'}), 500
+    try:
+        print("::Convirtiendo sonido a texto...")
+        process_video.convert_video_to_audio(video)
+    except Exception:
+        return jsonify({"error": 'No se ha podido obtener el texto del video'}), 500
 
     
     print("::El video ha sido procesado exitosamente...")
@@ -181,15 +179,15 @@ def add_recipe():
         legals = body.get("legals") or  False
         type_file = body.get("type_file") or 'pdf'
 
-        # if 'fileUpload' in request.files:
-        #     target=os.path.join(UPLOAD_FOLDER,'test_docs')
-        #     file = request.files['fileUpload']
-        #     print("::f", file)
-        #     filename = secure_filename(file.filename)
-        #     destination="/".join([target, filename])
-        #     file.save(destination)
-        #     session['uploadFilePath']=destination
-        #     recipe = process_video(file)
+        if 'fileUpload' in request.files:
+            target=os.path.join(UPLOAD_FOLDER,'test_docs')
+            file = request.files['fileUpload']
+            print("::f", file)
+            filename = secure_filename(file.filename)
+            destination="/".join([target, filename])
+            file.save(destination)
+            session['uploadFilePath']=destination
+            recipe = process_video(file)
 
         if url != "":
             exist = get_recipe_url(url)
@@ -199,12 +197,12 @@ def add_recipe():
                 print("::devolvemos el archivo de una vez")
                 data  = {""} #TODO
                 #generamos file
-                file = generate_file(type_file, data)
+                file = download_file(type_file, data)
                 return
             else:
                 print("::ejecutamos toda la IA")
                 data = process_video(url, "url")
-
+                
 
         data  = {  "name" : "Receta de Chiles Poblanos",
             "ingredients" : [
