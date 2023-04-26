@@ -32,13 +32,14 @@ export function MainController (props) {
 
 
   const handleChangeForm = (e) => {
-    const { target : { value, name, files , checked } = {}} = e;
+    const { target : { value, name, files , checked, type } = {}} = e;
     let val;
 
     console.log("::e", e)
 
-    console.log("::val", val)
     console.log("::val", checked)
+
+    
 
     switch(name){
       case "url":
@@ -61,9 +62,11 @@ export function MainController (props) {
         val = value;
         break;
     }
-    if(checked){
+
+    if(checked && type === 'checkbox'){
       val = checked
     }
+    console.log("::val", val)
 
     if(val){
       setFormData({...formData, [name] : val})
