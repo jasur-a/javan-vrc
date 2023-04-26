@@ -18,10 +18,6 @@ import traceback
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# load_dotenv()
-# MONGO_URI = os.environ.get('MONGO_URI')
-
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -159,7 +155,7 @@ def process_video(video, type= "file"):
     
     # Se obtienen los ingredientes
     ingredients = extr_ing.extract_ingredients()
-    # print(ingredients)
+    print(ingredients)
     
     print("::Se esta extrayendo el procedimiento...")
     #extr_proc
@@ -195,19 +191,19 @@ def add_recipe():
         #     session['uploadFilePath']=destination
         #     recipe = process_video(file)
 
-        # if url != "":
-        #     exist = get_recipe_url(url)
-        #     print("::exist", exist)
+        if url != "":
+            exist = get_recipe_url(url)
+            print("::exist", exist)
 
-        #     if exist :
-        #         print("::devolvemos el archivo de una vez")
-        #         data  = {""} #TODO
-        #         #generamos file
-        #         file = genrate_file(type_file, data)
-        #         return
-        #     else:
-        #         print("::ejecutamos toda la IA")
-        #         data = process_video(url, "url")
+            if exist :
+                print("::devolvemos el archivo de una vez")
+                data  = {""} #TODO
+                #generamos file
+                file = generate_file(type_file, data)
+                return
+            else:
+                print("::ejecutamos toda la IA")
+                data = process_video(url, "url")
 
 
         data  = {  "name" : "Receta de Chiles Poblanos",

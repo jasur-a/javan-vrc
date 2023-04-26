@@ -25,10 +25,10 @@ import json
 import re
 
 #import AI.process_text
-from AI.process_text import Doc, word_validate, grammar_validate, nlp
+from AI.process_text import Doc, word_validate, grammar_validate #, nlp
 
 def extract_procedure():
-    textfile = os.getcwd() + "\\Converted results\\" + "Converted_audio.txt"
+    textfile = os.getcwd() + "/Converted results/" + "Converted_audio.txt"
 
     try:
         with open(textfile) as file:
@@ -39,7 +39,7 @@ def extract_procedure():
 
     tool = language_tool_python.LanguageToolPublicAPI('es-MX')
 
-    #nlp = spacy.load("es_dep_news_lg")
+    nlp = spacy.load("es_dep_news_lg")
 
     # instantiate a Matcher instance
     matcher = Matcher(nlp.vocab)

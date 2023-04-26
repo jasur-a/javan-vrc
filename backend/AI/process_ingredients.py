@@ -48,10 +48,19 @@ def to_singular(word):
 """
 Obtiene los ingredientes del dataset.
 """
-def get_ingredients_from_file(dataset):
-    # excelfile = os.getcwd() + "\\datasets\\" + dataset
-    # #TODO @VD colocar la ruta correcta y una excepcion si no se encuentra
-    return pd.read_excel(excelfile)
+def get_ingredients_from_file(excelFile):
+    path = os.getcwd() + "/datasets/" + excelFile
+    print("::path", path)
+    file_to_read = Path(path)
+    if not file_to_read.exists():
+        print("File not exists")
+
+    with file_to_read.open('rb') as file:
+        try:
+            print("Leyendo dataset de ingredientes")
+            return pd.read_excel(file, engine='openpyxl')
+        except ModuleNotFoundError as e:
+            print('Could not load previous results')
 
 
 """
@@ -71,7 +80,7 @@ def get_ingredients(main_ingredient):
 Se obtienen los datos de un archivo json.
 """
 def parse_json_file(jsonfile):
-    path = os.getcwd() + "\\datasets\\" + jsonfile
+    path = os.getcwd() + "/datasets/" + jsonfile
     file_to_read = Path(path)
     if not file_to_read.exists():
         print("File not exists")

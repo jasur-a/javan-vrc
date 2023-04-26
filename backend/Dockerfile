@@ -8,6 +8,7 @@ WORKDIR /srv/src/
 ADD requirements.txt /srv/src/
 RUN pip install -r requirements.txt
 RUN python -m spacy download es_core_news_lg
+RUN python -m spacy download es_dep_news_trf
 COPY . /srv/src/
 EXPOSE :8080
 CMD ["uwsgi", "--ini", "uwsgi.ini"]

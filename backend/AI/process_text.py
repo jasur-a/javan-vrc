@@ -169,6 +169,25 @@ def word_validate(sentence):
     return sentence
 
 
+
+def Doc(text, type = "lg"):
+    #creamos nuestras propiedades personalizadas
+    Token.set_extension('is_semantic', getter=semantic, force=True)
+    Token.set_extension('is_syntax', getter=syntax, force=True)
+    Token.set_extension('is_spanish', getter=spanish_word, force=True)
+    Token.set_extension('is_consonant', getter=consonant, force=True)
+    Token.set_extension('is_symbol', getter=symbol, force=True)
+    Token.set_extension('is_ingredient', getter=ingredient, force=True)
+    Token.set_extension('need_punct', default=False, force=True)
+
+
+    if type == "lg": 
+        return nlp(text) 
+    else:
+        return nlp_trf(text)
+
+
+
 def parse_text(text, prev_doc = []):
     parsed_text = []
     
@@ -208,6 +227,7 @@ Se inserta una "," entre las palabras del texto que corresponda.
 """
 def insert_punct(tokenized_words, position):
 
+    
     # invertimos la lista de posiciones para agregar la "," de atras hacia adelante pra no alterar los ids de posiciones recibidos y ubicarlo en el lugar correcto
     reverse_position = sorted(position, reverse=True)
 
@@ -216,22 +236,11 @@ def insert_punct(tokenized_words, position):
         tokenized_words[pos][7] = True
         tokenized_words.insert(pos + 1, [pos + 1, ',', ',', 'PUNCT', 'punctuation', 'punct', '', False, [], []])
 
+    print("::tokenized_words", tokenized_words)
     #actualizamos las properties correspondientes a cada palabra
     text = [ token[1] for token in tokenized_words]
-    doc = Doc(" ".join(text), "trf")
+    doc = Doc(" ".join(text))
     parsed_text = parse_text(doc, tokenized_words)
 
     return get_tokenized_words(parsed_text)
 
-
-#creamos nuestras propiedades personalizadas
-Token.set_extension('is_semantic', getter=semantic, force=True)
-Token.set_extension('is_syntax', getter=syntax, force=True)
-Token.set_extension('is_spanish', getter=spanish_word, force=True)
-Token.set_extension('is_consonant', getter=consonant, force=True)
-Token.set_extension('is_symbol', getter=symbol, force=True)
-Token.set_extension('is_ingredient', getter=ingredient, force=True)
-Token.set_extension('need_punct', default=False, force=True)
-
-def Doc(text, type = "lg"):
-    return nlp(text) if type == "lg" else nlp_trf(text)

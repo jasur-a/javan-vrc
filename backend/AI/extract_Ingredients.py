@@ -572,6 +572,7 @@ def find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredie
             next_words = ngrams["next"]
    
             text = prev_words + " " + next_words #TODO 
+            number = tokenized_words[ing_idx][9]
             
             invalid = False
            
@@ -598,7 +599,10 @@ def find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredie
             if len(existing_idx) == 1:
                 break
            
-            if integer != 0:
+            if 'Plur' in number and integer == 1 :
+                found_item = [ ingredient, "", "", ing_idx ]
+            
+            elif integer != 0:
                 
                 found_item = [ ingredient, integer, "", ing_idx]
             else:
@@ -869,7 +873,7 @@ def preprocess_ingredients(parsed_ingredients):
 
 
 def extract_ingredients():
-    textfile = os.getcwd() + "\\Converted_results\\" + "Converted_audio.txt"
+    textfile = os.getcwd() + "/Converted_results/" + "Converted_audio.txt"
     last_ingredients = ""
 
     print("::Se estan extrayendo los ingredientes...")
