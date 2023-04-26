@@ -38,8 +38,10 @@
 #conda install -c conda-forge spacy-model-es_dep_news_trf
 #pip install xlrd
 #pip install Pattern
+#pip install openpyxl #NUEVO
 
 # Librerías para PNL
+from pathlib import Path
 import nltk
 #nltk.download()
 
@@ -195,11 +197,20 @@ def to_singular(word):
 """
 Obtiene los ingredientes del dataset.
 """
-def get_ingredients_from_file(dataset):
-    excelfile = os.getcwd() + "\\datasets\\" + dataset
+def get_ingredients_from_file(excelFile):
+    path = os.getcwd() + "\\datasets\\" + excelFile
+    file_to_read = Path(path)
+    if not file_to_read.exists():
+        print("File not exists")
+    
+    with file_to_read.open('rb') as file:
+        try:
+            print("Leyendo dataset de ingredientes")
+            return pd.read_excel(file, engine='openpyxl')
+        except ModuleNotFoundError as e:
+            print('Could not load previous results')
+       
     #TODO @VD colocar la ruta correcta y una excepcion si no se encuentra
-    return pd.read_excel(excelfile)
-
 
 # In[10]:
 
@@ -234,10 +245,18 @@ def get_ingredients(main_ingredient):
 Se obtienen los datos de un archivo json.
 """
 def parse_json_file(jsonfile):
-    with open(jsonfile) as user_file:
-        measures_content = user_file.read()
-        parsed_json = json.loads(measures_content)
-    return parsed_json
+    path = os.getcwd() + "\\datasets\\" + jsonfile
+    file_to_read = Path(path)
+    if not file_to_read.exists():
+        print("File not exists")
+    with file_to_read.open('rb') as file:
+        try:
+            print("Leyendo dataset...")
+            measures_content = file.read()
+            parsed_json = json.loads(measures_content)
+            return parsed_json
+        except ModuleNotFoundError as e:
+            print('Could not load previous results')
 
 
 # In[13]:
@@ -358,10 +377,10 @@ class WordsToInt():
     """
     def parse(self, words):
         # Se van a analizar las palabras con ciertos tags o lemas.
-        nlp = spacy.load("es_dep_news_trf")
+        nlp = spacy.load("es_core_news_lg")
         
         words = words.lower().strip()
-       
+        
         # Crea una lista para guardar los grupos de números tal como los encontramos dentro
         # la cadena de palabras.
         groups = {}        
@@ -687,13 +706,15 @@ Se obtienen los ingredientes con sus medidas correspondientes.
 def get_ingredients_with_measures(tokenized_words, ngrams_measures, ingredients, wtn):
     ingredients_with_measures = {}
     
+    print("Procesando ingredientes con medidas...")
+    
     for ngrams in ngrams_measures:
         for measure, measure_data in ngrams.items():
-            ngrams = measure_data['ngrams']
+            measure_ngrams = measure_data['ngrams']
             measure_idx = measure_data['measure_idx']
         
-            prev_words = ngrams["previous"]
-            next_words = ngrams["next"]
+            prev_words = measure_ngrams["previous"]
+            next_words = measure_ngrams["next"]
   
             text = prev_words + " " + next_words
     
@@ -708,14 +729,16 @@ def get_ingredients_with_measures(tokenized_words, ngrams_measures, ingredients,
                 if word == "y" and tokenized_words[current_idx_word + 1][3] == "NOUN":
                     break
             
-                for ingredient in ingredients: # TODO merge ingredientes 
+                for ingredient in ingredients:
                     if ingredient not in ingredients_with_measures and ingredient == word and integer != 0:
                         ingredients_with_measures[ingredient] = [ integer, measure, current_idx_word] 
                         found = True # no busca en los vecinos despúes de haber encontrado el ingrediente
                         break
                 if found:
                     break
-            
+                
+    print("Ingredientes con medidas procesados")
+    
     return ingredients_with_measures
 
 
@@ -727,6 +750,8 @@ Se obtienen los ingredientes con sus medidas irregulas correspondientes.
 """
 def get_ingredients_with_irregular_measures(irregular_measures_set, ngrams_ingredients):
     ingredients_with_irregular_measures = {}
+    
+    print("Procesando ingredientes con medidas irregulares...")
     
     measure_list = irregular_measures_set
    
@@ -746,6 +771,8 @@ def get_ingredients_with_irregular_measures(irregular_measures_set, ngrams_ingre
             if last_prev_word in measure_list:
                 ingredients_with_irregular_measures[ingredient] = [ "", last_prev_word, ing_idx] 
     
+    print("Ingredientes con medidas procesados")
+    
     return ingredients_with_irregular_measures
 
 
@@ -759,6 +786,8 @@ de la lista de n_grams_ingredients.
 def find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredients_with_measures, wtn):
     ingredients_with_quantity = []
 
+    print("Procesando ingredientes con cantidad...")
+    
     # un platano y medio
     for ngrams in ngrams_ingredients:
         complet_ingredient = []
@@ -805,7 +834,8 @@ def find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredie
         
             if found_item not in ingredients_with_quantity:
                 ingredients_with_quantity.append(found_item)
-        
+     
+    print("Ingredientes con cantidad procesados")   
     return ingredients_with_quantity
 
 
@@ -914,7 +944,7 @@ def get_adjectives(tokenized_words, final_ingredients):
                     adj_tag = searched_adj[3]
                     adj_dep = searched_adj[5]
                        
-                    if adj_dep == "amod" or adj_dep == "nmod" :
+                    if adj_dep == "amod" or adj_dep == "nmod" or adj_dep == "appos":
                         adj.append(adj_word)
                     else:
                         break
@@ -981,7 +1011,6 @@ def merge_ingredients_data(final_ingredients, final_ingredients_adj):
 def ingredients():
     # Se obtienen los ingredientes y las tres primeras columnas.
     ingredients_set = get_ingredients_from_file('ingredientes.xlsx')
-    print(ingredients_set)
 
     main_ingredient = ingredients_set.iloc[:, 0].str.lower()
     complementary1  = ingredients_set.iloc[:, 1].str.lower()
@@ -1025,7 +1054,7 @@ def ingredients_data_to_string(data_ingredients):
         ingredient_string = re.sub(' +',' ', ingredient_string)
         
         ingredients_to_text += "\n" + ingredient_string
-        
+    
     return ingredients_to_text
 
 
@@ -1066,7 +1095,6 @@ def get_ingredients_from_text(parsed_text):
     
     # Se obtienen los datos de los datasets
     list_ingredients = ingredients()
-    print(list_ingredients)
     measures_set = get_measures_from_file('medidas.json')
     
     # Medidas que nunca tienen cantidades
@@ -1087,7 +1115,7 @@ def get_ingredients_from_text(parsed_text):
     ingredients_with_measures = get_ingredients_with_measures(tokenized_words, ngrams_measures, list_ingredients, wtn)
     ingredients_with_irregular_measures = get_ingredients_with_irregular_measures(irregular_measures_set, ngrams_ingredients)
     ingredients_with_quantity = find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredients_with_measures, wtn)
-
+    
     only_ingredients = find_only_ingredients(ingredients_with_quantity)
      
     # Se obtienen todos los ingredientes encontrados
@@ -1095,10 +1123,10 @@ def get_ingredients_from_text(parsed_text):
    
     # Se obtienen los adjetivos y complementos
     final_ingredients_adj = get_adjectives(tokenized_words, final_ingredients)
-    final_ingredients_adj = get_complements(ngrams_ingredients, final_ingredients, final_ingredients_adj)
+    final_ingredients_complements = get_complements(ngrams_ingredients, final_ingredients, final_ingredients_adj)
     
     # Se unen las informaciones de los ingredientes encontrados
-    return merge_ingredients_data(final_ingredients, final_ingredients_adj)
+    return merge_ingredients_data(final_ingredients, final_ingredients_complements)
 
 
 # In[32]:
@@ -1121,7 +1149,7 @@ Se realiza un pre-procesamiento de ingredientes, para eliminar los elementos rep
 """ 
 def preprocess_ingredients(parsed_ingredients):  
     ingredients_text = " ".join(parsed_ingredients)
-    nlp = spacy.load("es_core_news_sm")
+    nlp = spacy.load("es_core_news_lg") #es_core_news_sm
 
     copy_parsed_ingredients = parsed_ingredients.copy()
 
@@ -1161,10 +1189,9 @@ def extract_ingredients():
     
         if len(from_description) == 0:
             parsed_ingredients = get_ingredients_from_text(parsed_text)
-
             last_ingredients = preprocess_ingredients(parsed_ingredients)
         else:
             last_ingredients = " ".join(from_description)
     
-    print(last_ingredients)
+    print("::Los ingredientes han sido extraídos exitosamente...")
     return last_ingredients
