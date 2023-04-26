@@ -12,11 +12,68 @@ const envData = Object.keys(process.env)
   return env;
 }, {});
 
+
+const generate_file = (data) => {
+
+    const contentType = data.type;
+
+    const fileContent = atob(data.file);
+    const byteNumbers = new Array(fileContent.length);
+    
+    for (let i = 0; i < fileContent.length; i++) {
+      byteNumbers[i] = fileContent.charCodeAt(i);
+    }
+    
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: contentType });
+    return blob
+}
+
 export async function generate_recipe(data) {
 
     //data.append('file', this.uploadInput.files[0]);
     //data.append('filename', this.fileName.value);
     fetch(`${envData.REACT_APP_API}upload`, {
+      method: 'POST',
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(data),
+    }).then(response => response.json())
+    .then(data => {
+      if( data?.error){
+        return data?.error
+      }
+      const fileName = data.name;
+      // Guardar el archivo en el sistema de archivos local
+      const blob = generate_file(data);
+      saveAs(blob, fileName);
+    })
+    .catch(error => {
+      console.error('Error al descargar el archivo:', error);
+    });
+  }
+
+export async function get_recipes() {
+
+    fetch(`${envData.REACT_APP_API}list`, {
+      method: 'GET',
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+    }).then((response) => {
+      response.json().then((body) => {
+        console.log("::body", body)
+        return body
+      });
+    }).catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+export async function download_recipe(data) {
+
+    fetch(`${envData.REACT_APP_API}download-file`, {
       method: 'POST',
       headers: new Headers({
         "Content-Type": "application/json",
@@ -31,23 +88,5 @@ export async function generate_recipe(data) {
     })
     .catch(error => {
       console.error('Error al descargar el archivo:', error);
-    });
-  }
-
-export async function get_recipes() {
-
-    //data.append('file', this.uploadInput.files[0]);
-    //data.append('filename', this.fileName.value);
-    fetch(`${envData.REACT_APP_API}list`, {
-      method: 'GET',
-      headers: new Headers({
-        "Content-Type": "application/json",
-      }),
-    }).then((response) => {
-      response.json().then((body) => {
-        console.log("::body", body)
-        return body
-        //this.setState({ imageURL: `${envData.API_URL}${body.file}` });
-      });
     });
   }

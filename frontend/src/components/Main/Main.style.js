@@ -2,6 +2,21 @@ import styled from 'styled-components';
 
 
 export const Container = styled.div`
+  text-align: center;
+  width: 100%;
+  display: flex;
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  justify-content: center;
+  background-color: #02566c;
+  align-items: center;
+  padding: 0px;
+  flex-direction: column;
+  min-height: 100vh;
+`;
+
+export const ContainerForm = styled.div`
   width: 90vw;
   display: flex;
   height: auto;
@@ -16,6 +31,11 @@ export const Container = styled.div`
   padding: 20px;
 `;
 
+
+export const Header = styled.div`
+  padding: 20px 9% 40px ;
+  color: #fff;
+`;
 
 export const Form = styled.form`
   width: 100%;

@@ -51,3 +51,4 @@ Converted_results*
 .ipynb_checkpoints*
 .venv
 venv*
+build*

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, request, redirect, url_for, session, request,  jsonify, Markup
+from flask import Flask, flash, request, redirect, url_for, session, request,  jsonify, Markup, make_response
 from werkzeug.utils import secure_filename
 from flask_cors import CORS, cross_origin
 import logging
@@ -9,6 +9,11 @@ from templates.template_txt import generate_txt
 from AI.sound_to_text import SoundToText
 import AI.extract_Ingredients as extr_ing
 #import AI.extract_Procedure as extr_proc
+
+import io
+import base64
+
+import traceback
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -63,26 +68,52 @@ class Recipes(db.Document):
     legals: db.BooleanField(default=False) # legals: the user accept the use of personal recipe
 
 
-# def add_recipe():
-#     result = db.recipe.insert_one({
-#         "recipe_name": ,
-#         "prep_time": ,
-#         "cook_time": ,
-#         "total_time":,
-#         "servings": ,
-#         "ingredients": ,
-#         "directions": ,
-#         "rating",
-#         "url":,
-#         "cuisine_path": ,
-#         "nutrition": ,
-#         "timing": ,
-#         "is_mexican": ,
-#         "legals": , 
-#         })
-#     return str(result.inserted_id)
+'''Funciones internas'''
+
+#buscamos si la url de la receta ya ha sido procesada
+def get_recipe_url(url : str):
+    try:
+        recipe = Recipes.objects(url=url).first()
+        print("::recipe", recipe)
+
+        return jsonify(recipe)
+    except Exception:
+        return False
+
+
+#consultamos por id para descargar la receta
+def get_recipe_id(id : id):
+    try:
+        recipe = Recipes.objects(id=id).first()
+        return jsonify(recipe)
+    except Exception:
+        return False
+
+#generamos el archivo correspondiente
+def generate_file(file_type, data):
+    try:
+        file = None
+        f_type = ""
+
+        if file_type == 'pdf':
+            file = generate_pdf(data)
+            f_type = "application/pdf"
+        else:
+            file = generate_txt(data)
+            f_type = "application/text"
+
+        file_data = {"name": data["name"], "file": base64.b64encode(file).decode(), "type": f_type}
+      
+        return jsonify(file_data)
+
+    except Exception as e:
+        print("Ha ocurrido un error:", e)
+        traceback.print_exc()
+        return False
+
 
 '''APIS'''
+
 
 #listamos todas las recetas
 @app.route("/api/list", methods=['GET'])
@@ -95,37 +126,22 @@ def get_recipes():
     
 
 
-#buscamos si la url de la receta ya ha sido procesada
-def get_recipe_url(url : str):
+#generamos el archivo descargable
+@app.route('/download-file', methods=['POST'])
+def download_file():
     try:
-        recipe = Recipes.objects(url=url).first()
-        print("::recipe", recipe)
 
-        return jsonify(recipe), 200
+        body = request.get_json()
+        id_recipe = body.get("id")
+        type_file = body.get("type_file")
+
+        recipe = get_recipe_id(id_recipe)
+        generate_file(type_file, recipe)
+
+        return generate_file, 200
+
     except Exception:
-        return False
-
-
-#consultamos por id para descargar la receta
-def get_recipe_id(id : id):
-    recipe = Recipes.objects(id=id).first()
-    return jsonify(recipe), 200
-
-
-@app.route('/download-file')
-def download_file(type_file, data):
-    print("::generamos el descargable")
-    try:
-        if type_file == 'pdf':
-            file = generate_pdf(data)
-
-            return file, 200
-        else:
-            file = generate_txt(data)
-
-            return file, 200
-    except Exception:
-        return False
+        return jsonify({"error": 'ha ocurrido un error al descargar el archivo'}), 500
 
 
 def process_video(video, type= "file"):
@@ -143,7 +159,7 @@ def process_video(video, type= "file"):
     
     # Se obtienen los ingredientes
     ingredients = extr_ing.extract_ingredients()
-    print(ingredients)
+    # print(ingredients)
     
     print("::Se esta extrayendo el procedimiento...")
     #extr_proc
@@ -169,29 +185,29 @@ def add_recipe():
         legals = body.get("legals") or  False
         type_file = body.get("type_file") or 'pdf'
 
-        if 'fileUpload' in request.files:
-            target=os.path.join(UPLOAD_FOLDER,'test_docs')
-            file = request.files['fileUpload']
-            print("::f", file)
-            filename = secure_filename(file.filename)
-            destination="/".join([target, filename])
-            file.save(destination)
-            session['uploadFilePath']=destination
-            recipe = process_video(file)
+        # if 'fileUpload' in request.files:
+        #     target=os.path.join(UPLOAD_FOLDER,'test_docs')
+        #     file = request.files['fileUpload']
+        #     print("::f", file)
+        #     filename = secure_filename(file.filename)
+        #     destination="/".join([target, filename])
+        #     file.save(destination)
+        #     session['uploadFilePath']=destination
+        #     recipe = process_video(file)
 
-        if url != "":
-            exist = get_recipe_url(url)
-            print("::exist", exist)
+        # if url != "":
+        #     exist = get_recipe_url(url)
+        #     print("::exist", exist)
 
-            if exist :
-                print("::devolvemos el archivo de una vez")
-                data  = {""} #TODO
-                #generamos file
-                file = download_file(type_file, data)
-                return
-            else:
-                print("::ejecutamos toda la IA")
-                data = process_video(url, "url")
+        #     if exist :
+        #         print("::devolvemos el archivo de una vez")
+        #         data  = {""} #TODO
+        #         #generamos file
+        #         file = genrate_file(type_file, data)
+        #         return
+        #     else:
+        #         print("::ejecutamos toda la IA")
+        #         data = process_video(url, "url")
 
 
         data  = {  "name" : "Receta de Chiles Poblanos",
@@ -231,15 +247,38 @@ def add_recipe():
 
         #if data :
             #generamos file
-            #file = download_file(type_file, data)
+        file = generate_file(type_file, data)
+
+        print("::file", file)
+
+        return file, 200
 
             #almacenar en la bd ...... TODO
+            #result = db.recipe.insert_one({
+    #         "recipe_name": ,
+    #         "prep_time": ,
+    #         "cook_time": ,
+    #         "total_time":,
+    #         "servings": ,
+    #         "ingredients": ,
+    #         "directions": ,
+    #         "rating",
+    #         "url":,
+    #         "cuisine_path": ,
+    #         "nutrition": ,
+    #         "timing": ,
+    #         "is_mexican": ,
+    #         "legals": , 
+    #         })
+            #if result.inserted_id:
 
-       #     return file, 200#jsonify(movie), 201
+       #        return file, 200#jsonify(movie), 201
 
-        return jsonify({"error": 'No es una receta'}), 500
+        #return jsonify({"error": 'No es una receta'}), 500
 
-    except Exception:
+    except Exception as e:
+        print("Ha ocurrido un error:", e)
+        traceback.print_exc()
         return jsonify({"error": 'ha ocurrido un error'}), 500
 
 # @app.route('/upload', methods=['POST'])
@@ -256,13 +295,7 @@ def add_recipe():
 #     response="Whatever you wish too return"
 #     return response
 
+
 if __name__ == "__main__":
     app.secret_key = os.urandom(24)
     app.run(debug=True,host="0.0.0.0",use_reloader=False)
-
-#CORS(app, expose_headers='Authorization')
-
-#https://medium.com/excited-developers/file-upload-with-react-flask-e115e6f2bf99
-#https://github.com/plouc/mozaik/issues/118
-#https://www.geeksforgeeks.org/how-to-connect-reactjs-with-flask-api/
-#https://www.geeksforgeeks.org/how-to-upload-file-in-python-flask/

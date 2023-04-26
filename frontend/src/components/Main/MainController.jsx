@@ -1,19 +1,39 @@
 import  { useEffect, useState } from 'react';
-import { generate_recipe , get_recipes } from '../../api/api';
+import { generate_recipe , get_recipes, download_recipe } from '../../api/api';
 
 export function MainController (props) {
 
-  console.log("::props", props)
   const [ showModal, setShoModal] = useState(false);
   const [ formData, setFormData] = useState({});
+  const [ listRecipes, setListRecipes] = useState([]);
   const [ disabled, setDisabled] = useState({"url": false, "fileUpload": false});
 
   useEffect( () => {
-
-    console.log("::list", get_recipes())
-
-
+    getRecipes()
   }, [])
+
+
+  const getRecipes = async ()  => {
+    const response = await get_recipes();
+    if(response){
+      setListRecipes(response)
+      return response
+    }
+  }
+
+  //TODO descargar el file data = {id, type_file}
+  const handleDownloadFile = async (ev, data)  => {
+    ev.preventDefault();
+
+    const response = await download_recipe(data)
+
+    if(response){
+      console.log("::response", response)
+
+      return response
+    }
+  }
+
 
   const handleSubmit = async (ev)  => {
     ev.preventDefault();
@@ -28,18 +48,9 @@ export function MainController (props) {
   }
 
 
-
-
-
   const handleChangeForm = (e) => {
-    const { target : { value, name, files , checked, type } = {}} = e;
+    const { target : { value, name, checked, type } = {}} = e;
     let val;
-
-    console.log("::e", e)
-
-    console.log("::val", checked)
-
-    
 
     switch(name){
       case "url":
@@ -66,7 +77,6 @@ export function MainController (props) {
     if(checked && type === 'checkbox'){
       val = checked
     }
-    console.log("::val", val)
 
     if(val){
       setFormData({...formData, [name] : val})
@@ -80,6 +90,7 @@ export function MainController (props) {
     handleSubmit,
     showModal, setShoModal,
     formData, setFormData,
-    disabled, setDisabled
+    disabled, setDisabled,
+    listRecipes
   };
 }

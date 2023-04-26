@@ -1,12 +1,12 @@
 ##The project is divided into two parts:
-	-. landing_back : app.py , is the REST API developed in a mini framework of python "Flask", to serve raw requests.
+	-. backend : app.py , is the REST API developed in a mini framework of python "Flask", to serve raw requests.
 
-	-. landing_front: is the portal, it is made up of index.html and static (css, js, plugins, img)
+	-. frontend: is the portal, it is made in ReacrJS
 
 ##Requirements:
 
 To run the project automatically, you need to have docker and docker-compose installed.
-Each folder (landing_front, landing_back) has its own dockerfile for image and volume survey.
+Each folder (frontend, backend) has its own dockerfile for image and volume survey.
 
 ##Run project:
 	1-. By console we place ourselves in the root folder of the project and execute the following command  

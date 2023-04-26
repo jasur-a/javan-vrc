@@ -1,20 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
-#python -m pip install SpeechRecognition moviepy  pafy pattern3  pydub --upgrade youtube_dl
-# python -m pip install pytube
-
-
-# In[2]:
-
-
-#pip install SpeechRecognition moviepy
-#pip install pafy
-#pip install --upgrade youtube_dl
-
 # Reconocimiento de Audio
 import speech_recognition as sr
 import moviepy.editor as mp
@@ -27,10 +13,6 @@ from pytube import YouTube
 # Otras librerías
 import os, shutil
 import json
-
-
-# In[3]:
-
 
 class SoundToText(object):
     """
@@ -192,26 +174,9 @@ class SoundToText(object):
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-# In[4]:
-
-
 #videourl = "https://www.youtube.com/watch?v=eQpAi5CogiQ"  #"https://www.youtube.com/watch?v=TzbvfPaGHl4" #(rajas) # "https://www.youtube.com/watch?v=eQpAi5CogiQ" (chiles) #https://www.youtube.com/watch?v=TzbvfPaGHl4 (con ingredientes)"  #"https://www.youtube.com/watch?v=qi3V_ArpDp4" 
 #to_text = SoundToText(videourl)
 
-
-# In[5]:
-
-
-#to_text.current_folder
-
-
-# In[6]:
-
-
-#to_text.convert_video_to_audio()
-
-
-# In[ ]:
 
 
 

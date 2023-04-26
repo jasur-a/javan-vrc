@@ -21,13 +21,8 @@ def generate_txt(data):
         buffer.write( item.encode('utf-8') + b'\n')
 
     # Obtener el contenido del buffer y devolverlo
-    response = make_response(buffer.getvalue())
+    response = buffer.getvalue()
     buffer.close()
 
-    file_name = data["name"].replace(' ', '_')
-
-    # set the content disposition
-    response.headers.set('Content-Disposition', 'attachment', filename='{}.txt'.format(file_name))
-    response.headers.set('Content-Type', 'text/plain')
     return response
 

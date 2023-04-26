@@ -2,21 +2,6 @@
   box-sizing: border-box;
 }
 
-.App {
-  text-align: center;
-  width: 100%;
-  display: flex;
-  position: relative;
-  z-index: 3;
-  height: 100%;
-  justify-content: center;
-  background-color: #02566c;
-  align-items: center;
-  padding: 0px;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -53,11 +38,6 @@ h1.App-title {
   text-align: center;
   text-transform: uppercase; 
 
-}
-
-.header{
-  padding: 0 9%;
-  color: #fff;
 }
 
 @keyframes App-logo-spin {

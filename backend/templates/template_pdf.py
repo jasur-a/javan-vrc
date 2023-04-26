@@ -91,12 +91,7 @@ def generate_pdf(data):
     pdf.save()
 
     # create a response object and set the content type
-    response = make_response(buffer.getvalue())
-
-    file_name = data["name"].replace(' ', '_')
-
-    # set the content disposition
-    response.headers['Content-Disposition'] = 'attachment; filename={}.pdf'.format(file_name)
-    response.headers['Content-Type'] = 'application/pdf'
+    response = buffer.getvalue() #make_response(buffer.getvalue())
+    buffer.close()
 
     return response
