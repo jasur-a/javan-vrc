@@ -24,6 +24,7 @@ from collections import Counter
 import json
 import re
 
+#import AI.process_text
 from AI.process_text import Doc, word_validate, grammar_validate, nlp
 
 def extract_procedure():
