@@ -48,7 +48,17 @@ export function MainController (props) {
   }
 
 
-  const handleChangeForm = (e) => {
+  const getBase64 = (file) => {
+    return new Promise((resolve) => {
+      let reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        resolve(reader.result);
+      };
+    });
+  };
+
+  const handleChangeForm = async (e) => {
     const { target : { value, name, files, checked, type } = {}} = e;
     let val;
 
@@ -65,7 +75,8 @@ export function MainController (props) {
         break;
       case "fileUpload":
         if( value !== ""){
-          val = files[0]
+          let file_base64 = await getBase64(files[0]);
+          val = file_base64
           setDisabled({...disabled, "url": true})
         }else{
           setDisabled({...disabled, "url": false})
