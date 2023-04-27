@@ -19,8 +19,9 @@ to_audio = os.getcwd() + "/Converted_audio.wav"
 Lee el video de audio. 
 """
 def read_audio_file():
-    sr.AudioFile(to_audio)
+    read = sr.AudioFile(to_audio)
     print("Audio ha sido leído...")
+    return read
      
 """
 Define una función para normalizar un fragmento a una amplitud dada.
@@ -43,6 +44,7 @@ def create_audio_chunks(audio):
 Se obtiene la transcripción del audio.
 """
 def get_audio_transcription(video_description = ""):
+    print("::video_description :", video_description)
     r = sr.Recognizer()
         
     # Se aplica speech recognition
@@ -105,7 +107,7 @@ def get_audio_transcription(video_description = ""):
     # Guarda el texto completo del video.
     fh.write(whole_text + "\n") 
     fh.close() 
-    return print("\nFull text:", whole_text)
+    return whole_text
     
 
 #videourl = "https://www.youtube.com/watch?v=eQpAi5CogiQ"  #"https://www.youtube.com/watch?v=TzbvfPaGHl4" #(rajas) # "https://www.youtube.com/watch?v=eQpAi5CogiQ" (chiles) #https://www.youtube.com/watch?v=TzbvfPaGHl4 (con ingredientes)"  #"https://www.youtube.com/watch?v=qi3V_ArpDp4" 

@@ -31,6 +31,8 @@ const generate_file = (data) => {
 
 export async function generate_recipe(data) {
 
+  console.log("::body", data)
+
     //data.append('file', this.uploadInput.files[0]);
     //data.append('filename', this.fileName.value);
     fetch(`${envData.REACT_APP_API}upload`, {

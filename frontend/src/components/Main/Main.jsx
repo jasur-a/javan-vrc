@@ -35,9 +35,9 @@ export function Main (props) {
 
             </div>
             <div>
-              <Label htmlFor="fileUpload">Subir desde el ordenador </Label>
+              <Label htmlFor="file_upload">Subir desde el ordenador </Label>
               
-              <UploadVideo name="fileUpload" disabled={disabled.fileUpload} form={formData} formState={setFormData} required/>
+              <UploadVideo name="file_upload" disabled={disabled.fileUpload} form={formData} formState={setFormData} required/>
 
             </div>
 

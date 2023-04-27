@@ -47,7 +47,7 @@ yarn.lock
 
 package-lock.json
 .DS_Store
-Converted_results*
+Converted_*
 .ipynb_checkpoints*
 .venv
 venv*

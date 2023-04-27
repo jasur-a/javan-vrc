@@ -18,39 +18,7 @@ from AI.process_text import Doc, word_validate
 
 #declaracion de las librerias de NPL
 tool = language_tool_python.LanguageTool('es')
-
-
-class Video:
-    def __init__(self, path, url):
-        self.path = path
-        self.videoUrl = url
-        self.yt = self.Download()
-        #self.localUrl = ''
-        #self.yt = ''
-        
-    def Download(self):
-        #por ahora para archivos de internet
-        file = self.Network()
-        print(file)
-        return file
-
-    def Network(self):
-        yt = YouTube(self.videoUrl)
-        yt = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        localUrl = yt.download(self.path)
-        self.localUrl = localUrl
-        return yt
-
-#'https://www.youtube.com/watch?v=REAFtXGnpKU'
-
-
-
-#video = Video(os.getcwd(),
-# 'https://www.youtube.com/watch?v=XE6epSyQrkw' )
-
-
+current_folder = os.getcwd() + "/Converted_results"
 
 def img_process(img):
 
@@ -115,7 +83,6 @@ def extract_text(img):
     # Utilizar OCR (Reconocimiento Óptico de Caracteres) para extraer el texto de la región de interés
     ocr = pytesseract.image_to_string(image)
 
-    print("::ocr", ocr)
     if len(ocr) > 0 :
 
         ocr_validate = word_validate(ocr.lower())
@@ -131,10 +98,15 @@ def extract_text(img):
 
 def extract_text_img():
 
-
-    url = os.getcwd() + "/Converted_results/" + "Chiles Rellenos sin Capear De Mi Rancho A Tu Cocina.mp4"
-
-    cam = cv2.VideoCapture(url)
+    path = None
+    for file in os.listdir(current_folder):
+        file = current_folder + "/" + file
+        if file.endswith(".mp4"):
+            path = r"{}".format(file)
+            print("::path", path)
+            break
+    
+    cam = cv2.VideoCapture(path)
 
     complete_text = []
     prev_text = ""

@@ -5,17 +5,13 @@ import spacy
 from spacy.tokens import Token
 import re
 import language_tool_python
-
-
-from pattern.es import pluralize
-from pattern.es import singularize
 from AI.process_ingredients import ingredients
 
 #declaracion de las librerias de NPL
 nlp = spacy.load("es_core_news_lg")
 #nlp_trf = spacy.load("es_dep_news_trf")
 tool = language_tool_python.LanguageTool('es')
-
+list_ingredients = ingredients()
 
 
 '''evaluamos la semantica de la palabra para ver si esta correctamente formulada la oracion 
@@ -68,8 +64,7 @@ def spanish_word(token):
 
 # Verificamos si la palabra es un ingrediente
 def ingredient(token):
-    ingr = ingredients()
-    return token.text.lower() in ingr is not False
+    return token.text.lower() in list_ingredients is not False
 
 #verificamos si el token es un simbolo
 def symbol(token):

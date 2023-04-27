@@ -62,18 +62,16 @@ export function MainController (props) {
     const { target : { value, name, files, checked, type } = {}} = e;
     let val;
 
-    console.log("::e", e)
-    console.log("::file", files)
     switch(name){
       case "url":
         if( value !== ""){
         val = value;
-          setDisabled({...disabled, "fileUpload": true})
+          setDisabled({...disabled, "file_upload": true})
         }else{
-          setDisabled({...disabled, "fileUpload": false})
+          setDisabled({...disabled, "file_upload": false})
         }
         break;
-      case "fileUpload":
+      case "file_upload":
         if( value !== ""){
           let file_base64 = await getBase64(files[0]);
           val = file_base64

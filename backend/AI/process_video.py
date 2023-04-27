@@ -4,13 +4,15 @@
 # Manipulación de Audio 
 import moviepy.editor as mp
 from pytube import YouTube 
+import traceback
+import base64
 
 # Otras librerías
 import os, shutil
 from AI.sound_to_text import read_audio_file, get_audio_transcription
 
 # Variables globales
-to_audio = os.getcwd() + "/"+ "Converted_audio.wav"
+to_audio = os.getcwd() + "/Converted_audio.wav"
 current_folder = os.getcwd() + "/Converted_results"
 
     
@@ -46,17 +48,38 @@ current_folder = os.getcwd() + "/Converted_results"
 """
 Descarga un video de YouTube.
 """
+
 def download_from_youtube(video_file):
-    yt_file = YouTube(video_file)
-    video_description = yt_file.description
-        
-    yt_file = yt_file.streams.get_highest_resolution()
-    if not os.path.exists(current_folder):
-        os.makedirs(current_folder)
-    yt_file.download(current_folder)
-        
-    return video_description
-    #  yt_file.close()
+    try : 
+        yt_file = YouTube(video_file)
+        video_description = yt_file.description
+        yt_file = yt_file.streams.first().get_highest_resolution()
+
+        if not os.path.exists(current_folder):
+            os.makedirs(current_folder)
+        yt_file.streams.first().download(current_folder)
+        return video_description
+        #  yt_file.close()
+    except Exception as e:
+        print("Ha ocurrido un error:", e)
+        traceback.print_exc()
+        return False
+
+
+def save_video(video):
+    try:
+        # Cadena espliteada
+        encoded_data = video.split(",")[1]
+        #caqdena decodificaqda
+        video_data = base64.b64decode(encoded_data)  # Decodifica el video de base64
+        with open(current_folder+"/saved_video.mp4", 'wb') as f:  # Abre el archivo en modo escritura binaria
+            f.write(video_data)
+        print("video guardado con exito")
+        return True
+    except Exception as e:
+        print("Ha ocurrido un error:", e)
+        traceback.print_exc()
+        return False
 
 
 def extract_text(video_file):
@@ -76,21 +99,25 @@ def extract_text(video_file):
 Convierto un video a audio. 
 """
 def convert_video_to_audio(video_file, type):
-    if type == "url": #optimizar en frontend
-        video_description = download_from_youtube(video_file)
-        convert_to_audio()
-        read_audio_file()
-        get_audio_transcription(video_description)
-    else:
-        #video_file = os.getcwd() + "\Converted_results\Chiles Rellenos sin Capear De Mi Rancho A Tu Cocina.mp4"
-        print(video_file)
-        to_audio = os.getcwd() + "/"+ "Converted_audio.wav"
-        clip = mp.VideoFileClip(video_file)
-        clip.audio.write_audiofile(to_audio)
-        print("Conversión a audio ha sido finalizada...")
-        read_audio_file()
-        get_audio_transcription()
-    #self.remove_filed() #TODO error => no elimina mp4
+    try:
+        transcription = None
+        if type == "url": #optimizar en frontend
+            video_description = download_from_youtube(video_file)
+            convert_to_audio()
+            read_audio_file()
+            transcription = get_audio_transcription(video_description)
+        else:
+            save_video(video_file)
+            convert_to_audio()
+            read_audio_file()
+            transcription = get_audio_transcription()
+
+        return transcription
+        #self.remove_filed() #TODO error => no elimina mp4
+    except Exception as e:
+        print("Ha ocurrido un error:", e)
+        traceback.print_exc()
+        return False
         
 
 """
@@ -106,7 +133,7 @@ def convert_to_audio():
             clip = mp.VideoFileClip(raw_string)
             clip.audio.write_audiofile(raw_audio)
             print("Conversión a audio ha sido finalizada...")
-                
+
     
 """
 Elimina todos los archivos de la carpeta creada al finalizar el procesamiento.
