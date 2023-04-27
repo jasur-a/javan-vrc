@@ -145,7 +145,7 @@ def process_video(video, type= "file"):
     # Se obtiene el texto del video con sonido
     try:
         print("::Convirtiendo sonido a texto...")
-        convert_video_to_audio(video)
+        convert_video_to_audio(video, type)
     except Exception:
         return jsonify({"error": 'No se ha podido obtener el texto del video'}), 500
 
