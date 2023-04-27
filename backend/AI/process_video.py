@@ -75,8 +75,8 @@ def extract_text(video_file):
 """
 Convierto un video a audio. 
 """
-def convert_video_to_audio(video_file):
-    if "youtube" in video_file: #optimizar en frontend
+def convert_video_to_audio(video_file, type):
+    if type == "url": #optimizar en frontend
         video_description = download_from_youtube(video_file)
         convert_to_audio()
         read_audio_file()
