@@ -82,6 +82,12 @@ def convert_video_to_audio(video_file):
         read_audio_file()
         get_audio_transcription(video_description)
     else:
+        #video_file = os.getcwd() + "\Converted_results\Chiles Rellenos sin Capear De Mi Rancho A Tu Cocina.mp4"
+        print(video_file)
+        to_audio = os.getcwd() + "/"+ "Converted_audio.wav"
+        clip = mp.VideoFileClip(video_file)
+        clip.audio.write_audiofile(to_audio)
+        print("Conversión a audio ha sido finalizada...")
         read_audio_file()
         get_audio_transcription()
     #self.remove_filed() #TODO error => no elimina mp4
