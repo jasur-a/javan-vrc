@@ -6,9 +6,10 @@ import logging
 from flask_mongoengine import MongoEngine
 from templates.template_pdf import generate_pdf
 from templates.template_txt import generate_txt
-from AI.sound_to_text import SoundToText
-import AI.extract_Ingredients as extr_ing
+#from AI.sound_to_text import SoundToText
+#import AI.extract_Ingredients as extr_ing
 #import AI.extract_Procedure as extr_proc
+from AI.process_video import convert_video_to_audio
 
 import io
 import base64
@@ -23,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('HELLO WORLD')
 
-UPLOAD_FOLDER = '/path/to/the/uploads'
+UPLOAD_FOLDER = os.getcwd() + "\\uploads" #'/path/to/the/uploads'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'mp4'])
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -144,7 +145,7 @@ def process_video(video, type= "file"):
     # Se obtiene el texto del video con sonido
     try:
         print("::Convirtiendo sonido a texto...")
-        process_video.convert_video_to_audio(video)
+        convert_video_to_audio(video)
     except Exception:
         return jsonify({"error": 'No se ha podido obtener el texto del video'}), 500
 
@@ -152,8 +153,8 @@ def process_video(video, type= "file"):
     print("::El video ha sido procesado exitosamente...")
     
     # Se obtienen los ingredientes
-    ingredients = extr_ing.extract_ingredients()
-    print(ingredients)
+    #ingredients = extr_ing.extract_ingredients()
+    #print(ingredients)
     
     print("::Se esta extrayendo el procedimiento...")
     #extr_proc
@@ -164,7 +165,6 @@ def process_video(video, type= "file"):
 
     #TODO post procesamiento y extracci'on
     print("::procesamos el video")
-
 
 #crear la receta
 @app.route('/api/upload', methods=['POST'])
@@ -178,16 +178,32 @@ def add_recipe():
         is_mexican = body.get("is_mexican") or  False
         legals = body.get("legals") or  False
         type_file = body.get("type_file") or 'pdf'
+        file_upload = body.get("fileUpload") or ""
 
-        if 'fileUpload' in request.files:
-            target=os.path.join(UPLOAD_FOLDER,'test_docs')
-            file = request.files['fileUpload']
-            print("::f", file)
-            filename = secure_filename(file.filename)
-            destination="/".join([target, filename])
-            file.save(destination)
-            session['uploadFilePath']=destination
-            recipe = process_video(file)
+    
+        try:
+            decoded = file_upload.decode('utf-8')
+            print(decoded)
+        except AttributeError:
+            pass
+
+
+        #if file_upload:
+           # print(file_upload)
+            #filename = file_upload.split("\\").pop()
+           # print("::f", filename)
+           # target= os.path.join(UPLOAD_FOLDER, filename)
+           # if not os.path.isdir(target):
+           #     os.mkdir(target)
+           # logger.info("welcome to upload`")
+                #file = request.files['file'] 
+           # filename = secure_filename(filename)
+            #print("::filename", filename)
+           # destination="/".join([target, filename])
+           # file_upload.save(destination)
+           # session['uploadFilePath']=destination
+           # 
+        #    recipe = process_video("")
 
         if url != "":
             exist = get_recipe_url(url)
@@ -275,19 +291,19 @@ def add_recipe():
         traceback.print_exc()
         return jsonify({"error": 'ha ocurrido un error'}), 500
 
-# @app.route('/upload', methods=['POST'])
-# def fileUpload():
-#     target=os.path.join(UPLOAD_FOLDER,'test_docs')
-#     if not os.path.isdir(target):
-#         os.mkdir(target)
-#     logger.info("welcome to upload`")
-#     file = request.files['file'] 
-#     filename = secure_filename(file.filename)
-#     destination="/".join([target, filename])
-#     file.save(destination)
-#     session['uploadFilePath']=destination
-#     response="Whatever you wish too return"
-#     return response
+@app.route('/api/upload', methods=['POST'])
+def fileUpload():
+    target=os.path.join(UPLOAD_FOLDER,'test_docs')
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    logger.info("welcome to upload`")
+    file = request.files['file'] 
+    filename = secure_filename(file.filename)
+    destination="/".join([target, filename])
+    file.save(destination)
+    session['uploadFilePath']=destination
+    response="Whatever you wish too return"
+    return response
 
 
 if __name__ == "__main__":
