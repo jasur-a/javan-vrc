@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 from flask import Flask, make_response
 from io import BytesIO
 from reportlab.pdfgen import canvas

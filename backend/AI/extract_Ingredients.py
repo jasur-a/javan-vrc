@@ -376,7 +376,7 @@ def get_ngrams_ingredients(tokenized_words, context, ingredients, dist= 5):
                 if tokenized_words[idx - 1][6] == "ingredient" and tokenized_words[idx][6] == "ingredient" :
                     punct.append(idx - 1)
                  
-                wsd_words = wsd_caracteristicas_colocacion(context, ingredient, idx, dist)
+                wsd_words = wsd_caracteristicas_colocacion(context, ingredient, idx, dist, punct)
                 
                 # Se analiza si existe una adposición o pronombre después del ingrediente
                 if next_word_tag == "ADP":                    
@@ -537,15 +537,17 @@ def get_ingredients_with_irregular_measures(irregular_measures_set, ngrams_ingre
         
             prev_words = ngrams["previous"].split()
             
-            last_prev_word = prev_words[-1]
-            
-            if last_prev_word == "de": #TODO optimizar
-                del prev_words[-1]
+            print("::prev_words", prev_words)
+            if len(prev_words) > 0:
                 last_prev_word = prev_words[-1]
+                
+                if last_prev_word == "de": #TODO optimizar
+                    del prev_words[-1]
+                    last_prev_word = prev_words[-1]
+            
+                if last_prev_word in measure_list:
+                    ingredients_with_irregular_measures[ingredient] = [ "", last_prev_word, ing_idx] 
         
-            if last_prev_word in measure_list:
-                ingredients_with_irregular_measures[ingredient] = [ "", last_prev_word, ing_idx] 
-    
     print("Ingredientes con medidas procesados")
     
     return ingredients_with_irregular_measures
@@ -774,8 +776,8 @@ def merge_ingredients_data(final_ingredients, final_ingredients_adj):
 Convierte los datos de los ingredientes a texto.
 """
 def ingredients_data_to_string(data_ingredients):
-    ingredients_to_text = ""
-    
+    ingredients_to_text = []
+
     for t_ingre in data_ingredients:
         cantidad = data_ingredients[t_ingre]['quantity'][0]
         medida = data_ingredients[t_ingre]['quantity'][1]
@@ -788,11 +790,9 @@ def ingredients_data_to_string(data_ingredients):
         ingredient_string = " ".join(ingredient_array)
         ingredient_string = re.sub(' +',' ', ingredient_string)
         
-        ingredients_to_text += "\n" + ingredient_string
+        ingredients_to_text.append(ingredient_string)
         
     return ingredients_to_text
-
-
 
 
 """
@@ -805,11 +805,10 @@ def get_ingredients_from_text(parsed_text):
     
     # Se obtienen los datos de los datasets
     list_ingredients = ingredients()
-    print(list_ingredients)
     measures_set = get_measures_from_file('medidas.json')
     
     # Medidas que nunca tienen cantidades
-    irregular_measures_set = parse_json_file('medidas irregulares.json')
+    irregular_measures_set = parse_json_file('medidas_irregulares.json')
     
     # Se inicializa la clase
     wtn = WordsToInt()
@@ -817,15 +816,15 @@ def get_ingredients_from_text(parsed_text):
     # Se obtienen los vecinos de los datos necesarios (ingredientes, cantidades y medidas)
     ngrams_ingredients, tokenized_ingredients, position_punct = get_ngrams_ingredients(tokenized_words, words_text, list_ingredients)
 
-    tokenized_words = insert_punct(tokenized_words, position_punct)
+    token_words = insert_punct(tokenized_words, position_punct)
         
-    ngrams_numbers = get_ngrams_quantity(tokenized_words, words_text)
-    ngrams_measures = get_ngrams_measures(tokenized_words, words_text, measures_set)
+    ngrams_numbers = get_ngrams_quantity(token_words, words_text)
+    ngrams_measures = get_ngrams_measures(token_words, words_text, measures_set)
     
     # Se obtienen los datos de los ingredientes encontrados
-    ingredients_with_measures = get_ingredients_with_measures(tokenized_words, ngrams_measures, list_ingredients, wtn)
+    ingredients_with_measures = get_ingredients_with_measures(token_words, ngrams_measures, list_ingredients, wtn)
     ingredients_with_irregular_measures = get_ingredients_with_irregular_measures(irregular_measures_set, ngrams_ingredients)
-    ingredients_with_quantity = find_ingredients_with_quantity(ngrams_ingredients, tokenized_words, ingredients_with_measures, wtn)
+    ingredients_with_quantity = find_ingredients_with_quantity(ngrams_ingredients, token_words, ingredients_with_measures, wtn)
 
     only_ingredients = find_only_ingredients(ingredients_with_quantity)
      
@@ -833,11 +832,11 @@ def get_ingredients_from_text(parsed_text):
     final_ingredients = merge_ingredients_measures_quantity(ingredients_with_measures, ingredients_with_irregular_measures, ingredients_with_quantity, only_ingredients)
    
     # Se obtienen los adjetivos y complementos
-    final_ingredients_adj = get_adjectives(tokenized_words, final_ingredients)
+    final_ingredients_adj = get_adjectives(token_words, final_ingredients)
     final_ingredients_complements = get_complements(ngrams_ingredients, final_ingredients, final_ingredients_adj)
     
     # Se unen las informaciones de los ingredientes encontrados
-    return merge_ingredients_data(final_ingredients, final_ingredients_complements)
+    return merge_ingredients_data(final_ingredients, final_ingredients_complements), token_words
 
 
 """
@@ -872,28 +871,36 @@ def preprocess_ingredients(parsed_ingredients):
     return ingredients_data_to_string(copy_parsed_ingredients)
 
 
-def extract_ingredients():
-    textfile = os.getcwd() + "/Converted_results/" + "Converted_audio.txt"
-    last_ingredients = ""
+def extract_ingredients(text):
+    #textfile = os.getcwd() + "/Converted_results/" + "Converted_audio.txt"
 
     print("::Se estan extrayendo los ingredientes...")
-
     try:
-        with open(textfile) as file:
-            fileContent = file.read()
-            file.close()
-    except FileNotFoundError:
-         print(f'The file {textfile} does not exist')
-    else:
-        parsed_text = parse_text(fileContent)
+    #     with open(textfile) as file:
+    #         fileContent = file.read()
+    #         file.close()
+    
+        parsed_text = parse_text(text)
         from_description = get_text_from_description(parsed_text)
-    
-        if len(from_description) == 0:
-            parsed_ingredients = get_ingredients_from_text(parsed_text)
+        final_text = None
+        last_ingredients = ""
 
+        if len(from_description) == 0:
+            parsed_ingredients, tokenized_words  = get_ingredients_from_text(parsed_text)
             last_ingredients = preprocess_ingredients(parsed_ingredients)
+
+            arr_text = []
+            for item in tokenized_words:
+                arr_text.append(item[1])
+            final_text = " ".join(arr_text)
+
         else:
-            last_ingredients = " ".join(from_description)
+            last_ingredients = from_description
+            final_text = text
+
+        return last_ingredients, final_text
+
+    except FileNotFoundError:
+       #print(f'The file {texfile} does not exist')
+        return False
     
-    print(last_ingredients)
-    return last_ingredients

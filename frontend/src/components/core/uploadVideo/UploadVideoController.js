@@ -54,7 +54,7 @@ export const UploadVideoController = (props) => {
       try {
         
           setFileName(file?.name);
-          formState({...FormData, [name]: value})
+          formState({...FormData, [name]: file})
       } catch (err) {
         setError('Hubo un error con el video. Por favor súbalo de nuevo');
         console.error(err);

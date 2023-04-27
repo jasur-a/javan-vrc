@@ -60,7 +60,7 @@ export const Button  = styled.button`
   font-size: 16px;
   font-weight: 600;
   text-align: center;
-
+  cursor:pointer;
 `
 
 export const Input = styled.input`

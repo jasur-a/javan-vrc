@@ -49,9 +49,11 @@ export function MainController (props) {
 
 
   const handleChangeForm = (e) => {
-    const { target : { value, name, checked, type } = {}} = e;
+    const { target : { value, name, files, checked, type } = {}} = e;
     let val;
 
+    console.log("::e", e)
+    console.log("::file", files)
     switch(name){
       case "url":
         if( value !== ""){
@@ -63,7 +65,7 @@ export function MainController (props) {
         break;
       case "fileUpload":
         if( value !== ""){
-          val = value
+          val = files[0]
           setDisabled({...disabled, "url": true})
         }else{
           setDisabled({...disabled, "url": false})

@@ -13,7 +13,6 @@ from nltk.corpus import stopwords
 import language_tool_python
 from spacy.matcher import Matcher
 from spacy.util import filter_spans
-import constants
 
 
 # Otras librerías
@@ -25,74 +24,77 @@ import json
 import re
 
 #import AI.process_text
-from AI.process_text import Doc, word_validate, grammar_validate #, nlp
+from AI.process_text import Doc, word_validate, grammar_validate , nlp
+from constants.constants import patterns
 
-def extract_procedure():
-    textfile = os.getcwd() + "/Converted results/" + "Converted_audio.txt"
+def extract_procedure(text):
+    #textfile = os.getcwd() + "/Converted_results/" + "Converted_audio.txt"
 
     try:
-        with open(textfile) as file:
-            fileContent = file.read()
-            file.close()
-    except FileNotFoundError:
-        print(f'The file {textfile} does not exist')
+        # with open(textfile) as file:
+        #     fileContent = file.read()
+        #     file.close()
+   
+        tool = language_tool_python.LanguageToolPublicAPI('es-MX')
 
-    tool = language_tool_python.LanguageToolPublicAPI('es-MX')
+        #nlp = spacy.load("es_dep_news_lg")
 
-    nlp = spacy.load("es_dep_news_lg")
+        # instantiate a Matcher instance
+        matcher = Matcher(nlp.vocab)
+        matcher.add("Verb phrase", patterns)
 
-    # instantiate a Matcher instance
-    matcher = Matcher(nlp.vocab)
-    matcher.add("Verb phrase", constants.patterns)
+        doc = Doc(text)
 
-    doc = Doc(fileContent)
+        # call the matcher to find matches
+        matches = matcher(doc)
+        spans = [doc[start:end] for _, start, end in matches]
 
-    # call the matcher to find matches
-    matches = matcher(doc)
-    spans = [doc[start:end] for _, start, end in matches]
+        value_list = filter_spans(spans)
+        value_list
 
-    value_list = filter_spans(spans)
-    value_list
+        tool = language_tool_python.LanguageToolPublicAPI('es-MX')
 
-    tool = language_tool_python.LanguageToolPublicAPI('es-MX')
+        procedure_to_string = ""
+        procedures = []
 
-    procedure_to_string = ""
+        for number, sentence in enumerate(value_list):
+            my_mistakes = []
+            my_corrections = []
 
-    for number, sentence in enumerate(value_list):
-        my_mistakes = []
-        my_corrections = []
+            text = str(sentence)
 
-        text = str(sentence)
+            matches = tool.check(text)
 
-        matches = tool.check(text)
+            for rules in matches:
+                if rules.ruleId == 'MORFOLOGIK_RULE_ES':  # no nos importa que reemplace ingredientes
+                    continue
+                else:
+                    my_mistakes.append(
+                        text[rules.offset: rules.errorLength + rules.offset])
+                    my_corrections.append(rules.replacements[0])
 
-        for rules in matches:
-            if rules.ruleId == 'MORFOLOGIK_RULE_ES':  # no nos importa que reemplace ingredientes
+            if len(my_corrections) == 0:
+                procedure_to_string += "\n" + str(number + 1) + ".- " + text + "."
                 continue
-            else:
-                my_mistakes.append(
-                    text[rules.offset: rules.errorLength + rules.offset])
-                my_corrections.append(rules.replacements[0])
 
-        if len(my_corrections) == 0:
-            procedure_to_string += "\n" + str(number + 1) + ".- " + text + "."
-            continue
+            new_text = text
 
-        new_text = text
+            #  for word in text.split():
+            for i, mistake in enumerate(my_mistakes):
+                new_text = new_text.replace(my_mistakes[i], my_corrections[i])
 
-        #  for word in text.split():
-        for i, mistake in enumerate(my_mistakes):
-            new_text = new_text.replace(my_mistakes[i], my_corrections[i])
+            procedure_to_string = "\n" + str(number + 1) + ".- " + new_text + "."
+            procedures.append(procedure_to_string)
 
-        procedure_to_string += "\n" + str(number + 1) + ".- " + new_text + "."
+        # Crea el archivo de ingredientes
+        # with open('recipe procedure.txt', 'w') as f:
+        # f.write("PROCEDIMIENTO:\n")
+        # f.write(procedure_to_string)
 
-        print(procedure_to_string)
+        # f.close()
 
-    # Crea el archivo de ingredientes
-    # with open('recipe procedure.txt', 'w') as f:
-    # f.write("PROCEDIMIENTO:\n")
-    # f.write(procedure_to_string)
+        return procedures
 
-    # f.close()
-
-    return procedure_to_string
+    except FileNotFoundError:
+        #print(f'The file {textfile} does not exist')
+        return False

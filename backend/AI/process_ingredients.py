@@ -50,7 +50,6 @@ Obtiene los ingredientes del dataset.
 """
 def get_ingredients_from_file(excelFile):
     path = os.getcwd() + "/datasets/" + excelFile
-    print("::path", path)
     file_to_read = Path(path)
     if not file_to_read.exists():
         print("File not exists")

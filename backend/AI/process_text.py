@@ -5,14 +5,18 @@ import spacy
 from spacy.tokens import Token
 import re
 import language_tool_python
-#spacy.cli.download("es")
 
+
+from pattern.es import pluralize
+from pattern.es import singularize
 from AI.process_ingredients import ingredients
 
 #declaracion de las librerias de NPL
 nlp = spacy.load("es_core_news_lg")
-nlp_trf = spacy.load("es_dep_news_trf")
+#nlp_trf = spacy.load("es_dep_news_trf")
 tool = language_tool_python.LanguageTool('es')
+
+
 
 '''evaluamos la semantica de la palabra para ver si esta correctamente formulada la oracion 
 o hay textos basura, pero validos en español'''
@@ -87,6 +91,79 @@ def grammar_validate(sentence):
         #La oración es gramaticalmente correcta.
         return True
 
+#creamos nuestras propiedades personalizadas
+Token.set_extension('is_semantic', getter=semantic, force=True)
+Token.set_extension('is_syntax', getter=syntax, force=True)
+Token.set_extension('is_spanish', getter=spanish_word, force=True)
+Token.set_extension('is_consonant', getter=consonant, force=True)
+Token.set_extension('is_symbol', getter=symbol, force=True)
+Token.set_extension('is_ingredient', getter=ingredient, force=True)
+Token.set_extension('need_punct', default=False, force=True)
+
+
+def Doc(text, type = "lg"):
+
+    if type == "lg": 
+        return nlp(text) 
+    # else:
+    #     return nlp_trf(text)
+
+
+
+def parse_text(text, prev_doc = []):
+    parsed_text = []
+    
+    doc = Doc(text)
+    
+    for idx, token in enumerate(doc):
+        if not token.like_url and not token.like_email:
+            description = prev_doc[idx][6] if len(prev_doc) > 0 else ""
+            punt = prev_doc[idx][7] if len(prev_doc) > 0 else token._.need_punct
+            parsed_text.append([token.text.lower(), token.lemma_, token.pos_, spacy.explain(token.pos_), token.dep_, description, punt, token.morph.get("Gender"), token.morph.get('Number')])
+
+    return parsed_text     
+
+
+def get_tokenized_words(parsed_text):
+    tokenized_words = []
+    
+    stopwords = ["mi", "hola", "mmm", "gracias", "\n", " "]
+
+    no_stopwords = [word for word in parsed_text if word[0] not in stopwords]
+
+    for index, word in enumerate(no_stopwords):
+        word.insert(0, index)
+        tokenized_words.append(word)
+        
+    return tokenized_words
+
+"""
+Obtiene solo el texto de las palabras
+"""
+def get_word_text(words):
+    return [word[1] for word in words]
+
+
+"""
+Se inserta una "," entre las palabras del texto que corresponda.
+"""
+def insert_punct(tokenized_words, position):
+
+    # invertimos la lista de posiciones para agregar la "," de atras hacia adelante pra no alterar los ids de posiciones recibidos y ubicarlo en el lugar correcto
+    reverse_position = sorted(position, reverse=True)
+
+    #recorremos las posiciones y las buscamos en el texto, le sumamos una posicion y agregamos la "," y actualizamos el valor del tetxo de  que requiere punt en True
+    for pos in reverse_position:
+        tokenized_words[pos][7] = True
+        tokenized_words.insert(pos + 1, [pos + 1, ',', ',', 'PUNCT', 'punctuation', 'punct', '', False, [], []])
+
+    #actualizamos las properties correspondientes a cada palabra
+    text = [ token[1] for token in tokenized_words]
+    doc = Doc(" ".join(text))
+    parsed_text = parse_text(doc, tokenized_words)
+
+    return get_tokenized_words(parsed_text)
+
 
 #validamos que la palabra sea correcta
 def word_validate(sentence):
@@ -100,7 +177,7 @@ def word_validate(sentence):
     is_valid = []
     have_ingredient = False
 
-    black_list = ["ol", "ae", "cu", "re", "cis", "ea", "pe", '/']
+    blacklist = ["ol", "ae", "cu", "re", "cis", "ea", "pe", '/']
 
     for token in doc_es:
 
@@ -111,12 +188,12 @@ def word_validate(sentence):
         is_symbol = res is not None
 
 
-        print(token.text, " alpha:", token.is_alpha, " stop: " , token.is_stop, " desconocida: ", token.is_oov, token.pos_)
-        print("    sem:", token._.is_semantic,  "syntax:", token._.is_syntax, "spanish:", token._.is_spanish, " is_consonant", token._.is_consonant, "is_ingredient", token._.is_ingredient, "is_symbol", is_symbol )
+        #print(token.text, " alpha:", token.is_alpha, " stop: " , token.is_stop, " desconocida: ", token.is_oov, token.pos_)
+        #print("    sem:", token._.is_semantic,  "syntax:", token._.is_syntax, "spanish:", token._.is_spanish, " is_consonant", token._.is_consonant, "is_ingredient", token._.is_ingredient, "is_symbol", is_symbol )
 
         if not is_symbol:
             print("::NO es simbolo")
-            if token.text in black_list :
+            if token.text in blacklist :
                 continue
             
             if token._.is_ingredient:
@@ -145,7 +222,6 @@ def word_validate(sentence):
 
     # if have_ingredient : 
 
-    #     print( )
     #     return ' '.join(words)
     
     
@@ -158,85 +234,8 @@ def word_validate(sentence):
     
     sentence = ' '.join(words)
     grammar  = grammar_validate(sentence)
-    print("::" , sentence, "word",  words, "::grammar:", grammar)
     
     if not grammar:
         return None
     return sentence
-
-
-
-def Doc(text, type = "lg"):
-    #creamos nuestras propiedades personalizadas
-    Token.set_extension('is_semantic', getter=semantic, force=True)
-    Token.set_extension('is_syntax', getter=syntax, force=True)
-    Token.set_extension('is_spanish', getter=spanish_word, force=True)
-    Token.set_extension('is_consonant', getter=consonant, force=True)
-    Token.set_extension('is_symbol', getter=symbol, force=True)
-    Token.set_extension('is_ingredient', getter=ingredient, force=True)
-    Token.set_extension('need_punct', default=False, force=True)
-
-
-    if type == "lg": 
-        return nlp(text) 
-    else:
-        return nlp_trf(text)
-
-
-
-def parse_text(text, prev_doc = []):
-    parsed_text = []
-    
-    doc = Doc(text)
-    
-    for idx, token in enumerate(doc):
-        if not token.like_url and not token.like_email:
-            description = prev_doc[idx][6] if len(prev_doc) > 0 else ""
-            punt = prev_doc[idx][7] if len(prev_doc) > 0 else token._.need_punct
-            parsed_text.append([token.text.lower(), token.lemma_, token.pos_, spacy.explain(token.pos_), token.dep_, description, punt, token.morph.get("Gender"), token.morph.get('Number')])
-
-    return parsed_text     
-
-
-def get_tokenized_words(parsed_text):
-    tokenized_words = []
-    
-    stopwords = [".", ",", "mi", "hola", "mmm", "gracias", "\n", " "]
-
-    no_stopwords = [word for word in parsed_text if word[0] not in stopwords]
-
-    for index, word in enumerate(no_stopwords):
-        word.insert(0, index)
-        tokenized_words.append(word)
-        
-    return tokenized_words
-
-"""
-Obtiene solo el texto de las palabras
-"""
-def get_word_text(words):
-    return [word[1] for word in words]
-
-
-"""
-Se inserta una "," entre las palabras del texto que corresponda.
-"""
-def insert_punct(tokenized_words, position):
-
-    
-    # invertimos la lista de posiciones para agregar la "," de atras hacia adelante pra no alterar los ids de posiciones recibidos y ubicarlo en el lugar correcto
-    reverse_position = sorted(position, reverse=True)
-
-    #recorremos las posiciones y las buscamos en el texto, le sumamos una posicion y agregamos la "," y actualizamos el valor del tetxo de  que requiere punt en True
-    for pos in reverse_position:
-        tokenized_words[pos][7] = True
-        tokenized_words.insert(pos + 1, [pos + 1, ',', ',', 'PUNCT', 'punctuation', 'punct', '', False, [], []])
-
-    print("::tokenized_words", tokenized_words)
-    #actualizamos las properties correspondientes a cada palabra
-    text = [ token[1] for token in tokenized_words]
-    doc = Doc(" ".join(text))
-    parsed_text = parse_text(doc, tokenized_words)
-
-    return get_tokenized_words(parsed_text)
 

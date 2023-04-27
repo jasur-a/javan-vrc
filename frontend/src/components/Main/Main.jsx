@@ -17,8 +17,8 @@ export function Main (props) {
 
   return (
     <>
-      <ModalWrapper modal={modalLegals} show={showModal}  handleShowModal={setShoModal} />
       <Container>
+      <ModalWrapper modal={modalLegals} show={showModal}  handleShowModal={setShoModal} />
       
         <Header>
           <h1 className='App-title'>Extracción de recetas de Videos</h1>

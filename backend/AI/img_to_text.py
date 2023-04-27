@@ -14,7 +14,7 @@ import os, shutil
 import re
 import language_tool_python
 
-from AI.process_text import Doc, word_validate, grammar_validate
+from AI.process_text import Doc, word_validate
 
 #declaracion de las librerias de NPL
 tool = language_tool_python.LanguageTool('es')
@@ -47,8 +47,8 @@ class Video:
 
 
 
-video = Video(os.getcwd(),
- 'https://www.youtube.com/watch?v=XE6epSyQrkw' )
+#video = Video(os.getcwd(),
+# 'https://www.youtube.com/watch?v=XE6epSyQrkw' )
 
 
 
@@ -115,20 +115,26 @@ def extract_text(img):
     # Utilizar OCR (Reconocimiento Óptico de Caracteres) para extraer el texto de la región de interés
     ocr = pytesseract.image_to_string(image)
 
-    print(ocr, len(ocr))
+    print("::ocr", ocr)
+    if len(ocr) > 0 :
 
-    ocr_validate = word_validate(ocr.lower())
+        ocr_validate = word_validate(ocr.lower())
 
-    print("::ocr_validate", ocr_validate)
-    if not ocr_validate:
-        return None
+        if not ocr_validate:
+            return None
 
-    #print(text)
-    return ocr_validate
+        #print(text)
+        return ocr_validate
+    
+    return ""
 
 
-def extract_text_img(img):
-    cam = cv2.VideoCapture(video.localUrl)
+def extract_text_img():
+
+
+    url = os.getcwd() + "/Converted_results/" + "Chiles Rellenos sin Capear De Mi Rancho A Tu Cocina.mp4"
+
+    cam = cv2.VideoCapture(url)
 
     complete_text = []
     prev_text = ""
@@ -161,7 +167,6 @@ def extract_text_img(img):
 
 
         if text :
-
 
             print(prev_text," - ", text)
             # Obtener el objeto Doc para cada texto:
