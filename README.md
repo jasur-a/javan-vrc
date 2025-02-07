@@ -1,3 +1,6 @@
+Javan-VRC is an AI prototype for the extraction of Mexican food recipes from videos extracted from youtube or uploaded by the user.
+This project works with the extraction of information from the audio and frames of the videos. Once the ingredients and recipe are extracted, it will be downloaded as a PDF or TXT file, depending on what has been selected before starting the extraction process.
+
 ##The project is divided into two parts:
 	-. backend : app.py , is the REST API developed in a mini framework of python "Flask", to serve raw requests.
 
