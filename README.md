@@ -4,7 +4,7 @@ This project works with the extraction of information from the audio and frames 
 ##The project is divided into two parts:
 	-. backend : app.py , is the REST API developed in a mini framework of python "Flask", to serve raw requests.
 
-	-. frontend: is the portal, it is made in ReacrJS
+	-. frontend: is the portal, it is made it in ReactJS
 
 ##Requirements:
 
